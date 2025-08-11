@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guardião Verde - Seu Jardineiro Virtual</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .floating {
+            animation: float 4s ease-in-out infinite;
+        }
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .chat-bubble {
+            border-radius: 20px;
+            position: relative;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+        .chat-bubble.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .caret {
+            position: absolute;
+            bottom: -10px;
+            left: 20px;
+            width: 0; 
+            height: 0; 
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid #F0FDF4;
+        }
+        .progress-bar {
+            height: 10px;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body class="bg-emerald-50 min-h-screen flex flex-col items-center p-4">
+    <div class="w-full max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <div class="flex justify-center items-center mb-4">
+                <img src="https://placehold.co/80x80" alt="Ícone de planta em um vaso com folhas verdes vibrantes" class="w-16 h-16 mr-4">
+                <h1 class="text-4xl font-bold text-emerald-800">Guardião Verde</h1>
+            </div>
+            <p class="text-lg text-emerald-700">Seu jardineiro virtual para cuidar perfeito das suas plantas</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1 bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="p-4 bg-emerald-600 text-white">
+                    <h2 class="text-xl font-semibold">Seu Jardineiro Virtual</h2>
+                </div>
+                <div class="p-4 flex flex-col items-center">
+                    <div class="floating mb-4">
+                        <img src="https://placehold.co/200x300" alt="Jardineiro virtual animado, um homem gentil com chapéu de palha, avental de jardineiro e sorriso amigável, segurando uma pá de jardim" class="w-full h-auto rounded-lg">
+                    </div>
+                    
+                    <div class="w-full mt-2">
+                        <div id="gardener-chat" class="chat-bubble bg-emerald-100 p-4 mb-4">
+                            <p class="text-emerald-800" id="gardener-message">Olá, jardineiro! Estou aqui para te ajudar a cuidar da sua planta. Vamos começar?</p>
+                            <div class="caret"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full mt-4" id="chat-container">
+                        <input type="text" id="user-question" placeholder="Pergunte ao jardineiro..." class="w-full px-4 py-2 border border-emerald-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <button id="ask-btn" class="mt-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+                            Perguntar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="p-4 bg-emerald-700 text-white">
+                    <h2 class="text-xl font-semibold">Cuide da Sua Planta</h2>
+                </div>
+                <div class="p-6" id="game-container">
+                    <div id="plant-status" class="flex items-center justify-between mb-6 p-4 bg-emerald-50 rounded-lg">
+                        <div>
+                            <h3 class="text-lg font-medium text-emerald-800" id="plant-title">Sua Planta Virtual</h3>
+                            <div class="flex items-center mt-1">
+                                <span class="text-emerald-600 mr-2">Saúde:</span>
+                                <div class="flex-1 bg-gray-200 rounded-full h-2.5">
+                                    <div class="progress-bar bg-emerald-500 h-2.5 rounded-full" style="width: 100%" id="health-bar"></div>
+                                </div>
+                                <span class="text-emerald-600 font-bold ml-2" id="health-percentage">100%</span>
+                            </div>
+                        </div>
+                        <div class="text-5xl pulse" id="plant-emoji">🌱</div>
+                    </div>
+
+                    <div id="caixa-perguntas" class="mb-6 p-4 bg-amber-50 rounded-lg">
+                        <p class="text-amber-800" id="question-text">Bem-vindo ao Guardião Verde! Antes de começar, qual é o nome da sua planta?</p>
+                    </div>
+
+                    <div id="name-input" style="display: block;">
+                        <input type="text" id="plant-name-input" placeholder="Digite o nome da sua planta" class="w-full px-4 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        <button id="start-btn" class="mt-2 w-full bg-amber-500 hover:bg-amber-600 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+                            Começar
+                        </button>
+                    </div>
+                    
+                    <div id="care-tips" class="p-4 bg-blue-50 rounded-lg my-4 hidden">
+                        <h4 class="font-medium text-blue-800 mb-2">Dica do Jardineiro:</h4>
+                        <p id="tip-content" class="text-blue-700"></p>
+                    </div>
+
+                    <div id="caixa-alternativas" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6" style="display: none;"></div>
+
+                    <div id="caixa-resultado" class="p-4 bg-emerald-50 rounded-lg hidden">
+                        <h3 class="text-lg font-medium text-emerald-800 mb-2">Resultado Final</h3>
+                        <p id="texto-resultado" class="text-gray-700 mb-4"></p>
+                        <div class="flex justify-center">
+                            <button id="restart-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+                                Jogar Novamente
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos do DOM
+            const gardenerMessage = document.getElementById('gardener-message');
+            const questionText = document.getElementById('question-text');
+            const plantTitle = document.getElementById('plant-title');
+            const healthBar = document.getElementById('health-bar');
+            const healthPercentage = document.getElementById('health-percentage');
+            const plantEmoji = document.getElementById('plant-emoji');
+            const plantNameInput = document.getElementById('plant-name-input');
+            const startBtn = document.getElementById('start-btn');
+            const careTips = document.getElementById('care-tips');
+            const tipContent = document.getElementById('tip-content');
+            const userQuestion = document.getElementById('user-question');
+            const askBtn = document.getElementById('ask-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            const chatContainer = document.getElementById('chat-container');
+            const caixaPerguntas = document.getElementById('caixa-perguntas');
+            const caixaAlternativas = document.getElementById('caixa-alternativas');
+            const caixaResultado = document.getElementById('caixa-resultado');
+
+            // Variáveis do jogo
+            let plantName = '';
+            let health = 100;
+            let currentQuestionIndex = 0;
+            let history = [];
+            let plantStage = 'seed';
+            
+            // Mapeamento de áudios
+            const audios = {
+                'regou_certo': new Audio('/tmp/guest-fff2tj/Downloads/GUSTAVO-DECISOES-main/AUDIO/632140__escola_ort__regador1.wav'),
+                'esperou_demais': new Audio('/tmp/guest-fff2tj/Downloads/GUSTAVO-DECISOES-main/AUDIO/WhatsApp Audio 2025-08-11 at 11.49.45.mp3'),
+                'afogou_planta': new Audio('/tmp/guest-fff2tj/Downloads/GUSTAVO-DECISOES-main/AUDIO/WhatsApp Audio 2025-08-11 at 11.54.20.mp3'),
+                'verificou_solo': new Audio('/tmp/guest-fff2tj/Downloads/GUSTAVO-DECISOES-main/AUDIO/WhatsApp Audio 2025-08-11 at 11.55.34.mp3'),
+                'adubou_planta': new Audio('audios/adubou_planta.mp3'),
+                'deu_mais_luz': new Audio('audios/deu_mais_luz.mp3'),
+                'reduziu_agua': new Audio('audios/reduziu_agua.mp3'),
+                'ignorou_problema': new Audio('/tmp/guest-fff2tj/Downloads/GUSTAVO-DECISOES-main/AUDIO/WhatsApp Audio 2025-08-11 at 11.43.39.mp3'),
+                'inseticida_quimico': new Audio('audios/inseticida_quimico.mp3'),
+                'lavou_folhas': new Audio('audios/lavou_folhas.mp3'),
+                'oleo_de_neem': new Audio('audios/oleo_de_neem.mp3'),
+                'isolou_planta': new Audio('audios/isolou_planta.mp3'),
+                'vaso_maior': new Audio('audios/vaso_maior.mp3'),
+                'fez_poda': new Audio('audios/fez_poda.mp3'),
+                'cresceu_livremente': new Audio('audios/cresceu_livremente.mp3'),
+                'multiplicou_planta': new Audio('audios/multiplicou_planta.mp3'),
+                'adubou_corretamente': new Audio('audios/adubou_corretamente.mp3'),
+                'fertilizou_demais': new Audio('audios/fertilizou_demais.mp3'),
+                'nao_fertilizou': new Audio('audios/nao_fertilizou.mp3'),
+                'manchas_nao_identificadas': new Audio('audios/manchas_nao_identificadas.mp3'),
+                'folhas_com_manchas': new Audio('audios/folhas_com_manchas.mp3'),
+                'fungicida_natural': new Audio('audios/fungicida_natural.mp3'),
+                'removeu_folhas': new Audio('audios/removeu_folhas.mp3'),
+                'parabens': new Audio('audios/parabens.mp3'),
+                'bom_trabalho': new Audio('audios/bom_trabalho.mp3'),
+                'precisou_de_ajuda': new Audio('audios/precisou_de_ajuda.mp3'),
+                'nao_resistiu': new Audio('audios/nao_resistiu.mp3'),
+                'plant_chat_default': new Audio('audios/plant_chat_default.mp3'),
+                'bem_vindo': new Audio('audios/bem_vindo.mp3')
+            };
+
+            function playAudio(key) {
+                if (audios[key]) {
+                    audios[key].play();
+                } else {
+                    console.error('Áudio não encontrado:', key);
+                }
+            }
+            
+            function showGardenerChat(message, audioKey) {
+                gardenerMessage.textContent = message;
+                const chatBubble = document.getElementById('gardener-chat');
+                chatBubble.classList.remove('visible');
+                setTimeout(() => {
+                    chatBubble.classList.add('visible');
+                    if (audioKey) {
+                        playAudio(audioKey);
+                    }
+                }, 10);
+            }
+
+            // Perguntas e alternativas
+            const questions = [
+                {
+                    question: "A terra da sua planta está seca. O que você faz?",
+                    emoji: "🌱",
+                    alternatives: [
+                        {
+                            text: "Rego imediatamente",
+                            points: 10,
+                            response: "Você regou a planta na medida certa!",
+                            tip: "Regue quando o solo estiver seco ao toque, mas não encharcado. O ideal é checar com o dedo.",
+                            audio: 'regou_certo'
+                        },
+                        {
+                            text: "Espero mais um pouco",
+                            points: -5,
+                            response: "Você esperou demais e a planta ficou com sede!",
+                            tip: "Plantas jovens precisam de rega mais frequente. Não deixe o solo secar completamente.",
+                            audio: 'esperou_demais'
+                        },
+                        {
+                            text: "Rego abundantemente",
+                            points: -15,
+                            response: "Você afogou a planta com água demais!",
+                            tip: "Excesso de água pode apodrecer as raízes. Sempre verifique a drenagem do vaso.",
+                            audio: 'afogou_planta'
+                        },
+                        {
+                            text: "Verifico se realmente precisa",
+                            points: 15,
+                            response: "Você verificou a umidade do solo antes de regar - excelente!",
+                            tip: "Sempre cheque 2-3 cm abaixo da superfície para ver se precisa regar.",
+                            audio: 'verificou_solo'
+                        }
+                    ]
+                },
+                {
+                    question: "Você nota que as folhas estão ficando amarelas. O que você faz?",
+                    emoji: "🍂",
+                    alternatives: [
+                        {
+                            text: "Adubo a planta",
+                            points: 5,
+                            response: "Você adubou a planta para nutri-la!",
+                            tip: "Folhas amarelas podem indicar falta de nutrientes. Mas também pode ser excesso de água, então é bom verificar o solo antes.",
+                            audio: 'adubou_planta'
+                        },
+                        {
+                            text: "Mudo para um lugar mais ensolarado",
+                            points: 10,
+                            response: "Você deu mais luz para a planta!",
+                            tip: "Luz insuficiente pode causar amarelecimento. Mude a planta para um local com mais luz indireta.",
+                            audio: 'deu_mais_luz'
+                        },
+                        {
+                            text: "Reduzo a quantidade de água",
+                            points: 15,
+                            response: "Você identificou o excesso de água - ótimo!",
+                            tip: "Excesso de água é a causa mais comum de folhas amarelas. Deixe o solo secar um pouco mais entre as regas.",
+                            audio: 'reduziu_agua'
+                        },
+                        {
+                            text: "Não faço nada",
+                            points: -10,
+                            response: "Você ignorou o problema e a planta piorou!",
+                            tip: "Folhas amareladas sempre indicam algum problema que precisa ser resolvido. Não ignore os sinais.",
+                            audio: 'ignorou_problema'
+                        }
+                    ]
+                },
+                {
+                    question: "Apareceram pequenos insetos na planta. O que você faz?",
+                    emoji: "🐛",
+                    alternatives: [
+                        {
+                            text: "Uso inseticida químico",
+                            points: -5,
+                            response: "O inseticida forte pode prejudicar a planta!",
+                            tip: "Inseticidas químicos devem ser o último recurso, pois podem ser agressivos. Tente soluções naturais primeiro.",
+                            audio: 'inseticida_quimico'
+                        },
+                        {
+                            text: "Lavo as folhas com água",
+                            points: 5,
+                            response: "Você removeu manualmente os invasores!",
+                            tip: "Lavar as folhas com um jato suave de água remove muitos insetos sem a necessidade de produtos químicos.",
+                            audio: 'lavou_folhas'
+                        },
+                        {
+                            text: "Uso óleo de neem",
+                            points: 20,
+                            response: "Você usou um remédio natural eficaz!",
+                            tip: "Óleo de neem é o melhor tratamento orgânico para pragas. É seguro para a planta e eficiente contra a maioria dos insetos.",
+                            audio: 'oleo_de_neem'
+                        },
+                        {
+                            text: "Isole a planta das outras",
+                            points: 10,
+                            response: "Você impediu que a praga se espalhasse!",
+                            tip: "Isolar plantas doentes ou com pragas evita a contaminação de outras plantas saudáveis. É a primeira medida a ser tomada.",
+                            audio: 'isolou_planta'
+                        }
+                    ]
+                },
+                {
+                    question: "Sua planta está crescendo muito. O que você faz?",
+                    emoji: "🌿",
+                    alternatives: [
+                        {
+                            text: "Transplanto para um vaso maior",
+                            points: 15,
+                            response: "Você deu mais espaço para as raízes crescerem!",
+                            tip: "Transplante quando as raízes saírem pelos furos do vaso. Use um vaso apenas 5-10 cm maior que o atual.",
+                            audio: 'vaso_maior'
+                        },
+                        {
+                            text: "Podo os galhos",
+                            points: 10,
+                            response: "Você fez uma poda para manter o formato!",
+                            tip: "Podar estimula o crescimento de novos brotos, deixando a planta mais cheia e bonita.",
+                            audio: 'fez_poda'
+                        },
+                        {
+                            text: "Deixo crescer livremente",
+                            points: 5,
+                            response: "Você deixou a planta seguir seu curso natural!",
+                            tip: "Algumas plantas ficam lindas quando crescem livremente, sem podas. Observe a espécie da sua planta.",
+                            audio: 'cresceu_livremente'
+                        },
+                        {
+                            text: "Divido a planta em duas",
+                            points: 20,
+                            response: "Você multiplicou sua planta - excelente!",
+                            tip: "Dividir é ótimo para plantas que formam touceiras, como a espada-de-são-jorge. Isso cria novas plantas.",
+                            audio: 'multiplicou_planta'
+                        }
+                    ]
+                },
+                {
+                    question: "Você decide fertilizar sua planta. Qual a melhor abordagem?",
+                    emoji: "🧪",
+                    alternatives: [
+                        {
+                            text: "Adicionar muito fertilizante de uma vez",
+                            points: -20,
+                            response: "Você exagerou no fertilizante e queimou as raízes da planta!",
+                            tip: "O excesso de fertilizante é prejudicial. Mais não é sinônimo de melhor! Sempre siga as instruções da embalagem.",
+                            audio: 'fertilizou_demais'
+                        },
+                        {
+                            text: "Não fertilizar nunca",
+                            points: -10,
+                            response: "A planta ficou fraca por falta de nutrientes!",
+                            tip: "A fertilização é essencial para a maioria das plantas durante a fase de crescimento. Sem nutrientes, elas não se desenvolvem bem.",
+                            audio: 'nao_fertilizou'
+                        },
+                        {
+                            text: "Fertilizar em pequenas doses, seguindo as instruções",
+                            points: 20,
+                            response: "Você fertilizou a planta na dose certa. Ótimo!",
+                            tip: "A fertilização deve ser feita em doses pequenas e regulares, especialmente na primavera e no verão, quando a planta está em crescimento ativo.",
+                            audio: 'adubou_corretamente'
+                        },
+                        {
+                            text: "Fertilizar apenas no inverno",
+                            points: -5,
+                            response: "Você fertilizou na época errada. O crescimento da planta é menor no inverno!",
+                            tip: "Fertilize a planta apenas durante as estações de crescimento (primavera/verão). No inverno, as plantas entram em dormência e não precisam de adubo.",
+                            audio: 'nao_fertilizou'
+                        }
+                    ]
+                },
+                {
+                    question: "Você nota pequenas manchas marrons nas folhas. O que faz?",
+                    emoji: "🍄",
+                    alternatives: [
+                        {
+                            text: "Ignorar e esperar passar",
+                            points: -10,
+                            response: "Você ignorou as manchas, e a doença se espalhou!",
+                            tip: "Manchas marrons podem indicar doenças fúngicas. É importante agir rápido para evitar que se espalhem para outras partes da planta.",
+                            audio: 'manchas_nao_identificadas'
+                        },
+                        {
+                            text: "Aplicar água nas folhas",
+                            points: -5,
+                            response: "A água pode piorar o problema, já que alguns fungos se espalham com a umidade!",
+                            tip: "Molhar as folhas é contraindicado quando há suspeita de fungos. A umidade facilita a proliferação de doenças.",
+                            audio: 'folhas_com_manchas'
+                        },
+                        {
+                            text: "Remover as folhas afetadas e aplicar fungicida natural",
+                            points: 20,
+                            response: "Você tratou o problema de forma eficaz e natural!",
+                            tip: "Remover as folhas doentes e usar um fungicida natural (como óleo de neem ou solução de bicarbonato) é o melhor caminho para combater os fungos.",
+                            audio: 'fungicida_natural'
+                        },
+                        {
+                            text: "Arrancar a planta e jogar fora",
+                            points: -50,
+                            response: "Não precisava disso! A planta ainda tinha salvação!",
+                            tip: "Quase todos os problemas de plantas podem ser resolvidos com o tratamento correto. Desistir da planta é a última opção.",
+                            audio: 'removeu_folhas'
+                        }
+                    ]
+                }
+            ];
+
+            // Base de conhecimento do jardineiro (IA simulada)
+            const gardeningKnowledge = {
+                'água': {
+                    response: 'Regue sua planta quando o solo estiver seco ao toque. A frequência ideal depende da espécie, temperatura e umidade do ambiente. Uma boa dica é verificar 2-3 cm abaixo da superfície - se estiver seco, é hora de regar.',
+                    audio: 'plant_chat_default'
+                },
+                'luz': {
+                    response: 'A maioria das plantas de interior precisa de luz indireta brilhante por 6-8 horas ao dia. Observe as folhas - se estiverem pálidas ou alongadas, pode ser falta de luz. Se tiverem manchas marrons, pode ser excesso de sol direto.',
+                    audio: 'plant_chat_default'
+                },
+                'adubo': {
+                    response: 'Adube a cada 4-6 semanas na primavera e verão. Use um fertilizante balanceado (10-10-10) diluído. No outono e inverno, reduza para a cada 8-10 semanas ou pare completamente, conforme a espécie.',
+                    audio: 'plant_chat_default'
+                },
+                'folhas amarelas': {
+                    response: 'Folhas amarelas podem ter várias causas: excesso de água (mais comum), falta de nutrientes, pragas ou luz inadequada. Verifique primeiro a umidade do solo e examine as folhas por insetos.',
+                    audio: 'plant_chat_default'
+                },
+                'pragas': {
+                    response: 'Para pragas comuns como pulgões ou ácaros, use uma solução de água com sabão neutro (1 colher por litro) ou óleo de neem. Aplique a cada 3-5 dias até resolver. Sempre isole a planta afetada.',
+                    audio: 'plant_chat_default'
+                },
+                'transplante': {
+                    response: 'Transplante quando: 1) as raízes saírem pelo fundo do vaso, 2) a planta parar de crescer, ou 3) a água escorrer muito rápido (sinal de muitas raízes). Use um vaso apenas 5-10 cm maior que o atual.',
+                    audio: 'plant_chat_default'
+                },
+                'default': {
+                    response: 'Como jardineiro virtual, posso te ajudar com dúvidas sobre rega, iluminação, adubação, pragas e outros cuidados com plantas. O que mais você gostaria de saber?',
+                    audio: 'plant_chat_default'
+                }
+            };
+            
+            // Função para atualizar a saúde da planta
+            function updateHealth(points) {
+                health = Math.max(0, Math.min(100, health + points));
+                healthBar.style.width = `${health}%`;
+                healthPercentage.textContent = `${health}%`;
+                
+                if (health > 70) {
+                    healthBar.className = 'progress-bar bg-emerald-500 h-2.5 rounded-full';
+                    plantEmoji.className = 'text-5xl pulse';
+                } else if (health > 30) {
+                    healthBar.className = 'progress-bar bg-amber-300 h-2.5 rounded-full';
+                    plantEmoji.className = 'text-5xl';
+                } else {
+                    healthBar.className = 'progress-bar bg-red-500 h-2.5 rounded-full';
+                    plantEmoji.className = 'text-5xl';
+                }
+                
+                updatePlantStage();
+            }
+
+            // Função para atualizar o estágio da planta
+            function updatePlantStage() {
+                if (health <= 0) {
+                    plantStage = 'dead';
+                    plantEmoji.textContent = '💀';
+                } else if (health <= 30) {
+                    plantStage = 'sick';
+                    plantEmoji.textContent = '🍂';
+                } else if (health <= 60) {
+                    plantStage = 'young';
+                    plantEmoji.textContent = '🌱';
+                } else if (health <= 90) {
+                    plantStage = 'healthy';
+                    plantEmoji.textContent = '🌿';
+                } else {
+                    plantStage = 'thriving';
+                    plantEmoji.textContent = '🌸';
+                }
+            }
+
+            // Função para mostrar uma pergunta
+            function showQuestion(index) {
+                const questionData = questions[index];
+                const alternativesContainer = document.getElementById('caixa-alternativas');
+                
+                questionText.textContent = questionData.question;
+                plantEmoji.textContent = questionData.emoji;
+                alternativesContainer.innerHTML = '';
+                
+                // Limpar e ocultar a dica anterior
+                tipContent.textContent = '';
+                careTips.classList.add('hidden');
+                
+                // Mostrar a dica do jardineiro ANTES da pergunta
+                const randomAlt = questionData.alternatives[Math.floor(Math.random() * questionData.alternatives.length)];
+                tipContent.textContent = randomAlt.tip;
+                careTips.classList.remove('hidden');
+
+                questionData.alternatives.forEach((alt) => {
+                    const button = document.createElement('button');
+                    button.className = 'bg-white hover:bg-emerald-50 text-emerald-800 font-medium py-3 px-4 border border-emerald-200 rounded-lg transition duration-200';
+                    button.textContent = alt.text;
+                    
+                    button.addEventListener('click', () => {
+                        updateHealth(alt.points);
+                        history.push(alt.response);
+                        showGardenerChat(alt.response, alt.audio);
+                        
+                        // Avançar para próxima pergunta ou finalizar
+                        currentQuestionIndex++;
+                        if (currentQuestionIndex < questions.length) {
+                            setTimeout(() => {
+                                showQuestion(currentQuestionIndex);
+                            }, 3000);
+                        } else {
+                            setTimeout(showFinalResult, 3000);
+                        }
+                    });
+                    
+                    alternativesContainer.appendChild(button);
+                });
+                
+                caixaPerguntas.classList.remove('hidden');
+                caixaAlternativas.style.display = 'grid';
+                caixaResultado.classList.add('hidden');
+                chatContainer.style.display = 'none'; // Esconde o chat do jardineiro durante o jogo
+            }
+
+            // Função para mostrar resultado final
+            function showFinalResult() {
+                let result = '';
+                let gardenerComment = '';
+                let audioKey = '';
+                
+                if (health > 80) {
+                    result = `Parabéns! ${plantName} está florescendo lindamente sob seus cuidados. Você é um excelente jardineiro!`;
+                    gardenerComment = `👨‍🌾 "Você tem um verdadeiro dom para cuidar de plantas! ${plantName} está radiante!"`;
+                    audioKey = 'parabens';
+                } else if (health > 50) {
+                    result = `Bom trabalho! ${plantName} está saudável, mas pode melhorar com alguns ajustes. Continue aprendendo!`;
+                    gardenerComment = `👨‍🌾 "Com mais um pouco de prática, você será um expert! ${plantName} agradece seus cuidados."`;
+                    audioKey = 'bom_trabalho';
+                } else if (health > 20) {
+                    result = `${plantName} sobreviveu, mas precisou de ajuda. Revise as dicas do jardineiro para melhorar.`;
+                    gardenerComment = `👨‍🌾 "Todo jardineiro começa assim. Não desista! Eu te ajudo a cuidar melhor da ${plantName}."`;
+                    audioKey = 'precisou_de_ajuda';
+                } else {
+                    result = `Infelizmente ${plantName} não resistiu. Mas não desanime! Tente novamente com as dicas aprendidas.`;
+                    gardenerComment = `👨‍🌾 "Às vezes acontece... Que tal começar de novo? Prometo te ajudar melhor desta vez!"`;
+                    audioKey = 'nao_resistiu';
+                }
+                
+                result += '\n\nSuas ações:\n';
+                history.forEach((action, i) => {
+                    result += `\n${i + 1}. ${action}`;
+                });
+                
+                document.getElementById('texto-resultado').innerHTML = result.replace(/\n/g, '<br>');
+                showGardenerChat(gardenerComment, audioKey);
+                
+                caixaPerguntas.classList.add('hidden');
+                caixaAlternativas.style.display = 'none';
+                careTips.classList.add('hidden');
+                caixaResultado.classList.remove('hidden');
+                chatContainer.style.display = 'block'; // Mostra o chat novamente no final
+            }
+
+            // Função para reiniciar o jogo
+            function restartGame() {
+                currentQuestionIndex = 0;
+                health = 100;
+                history = [];
+                plantStage = 'seed';
+                
+                updateHealth(0);
+                plantEmoji.textContent = '🌱';
+                document.getElementById('texto-resultado').textContent = '';
+                caixaResultado.classList.add('hidden');
+                document.getElementById('name-input').style.display = 'block';
+                plantNameInput.value = '';
+                questionText.textContent = `Bem-vindo ao Guardião Verde! Antes de começar, qual é o nome da sua planta?`;
+                showGardenerChat(`Olá, jardineiro! Estou aqui para te ajudar a cuidar da sua planta. Vamos começar?`, 'bem_vindo');
+                chatContainer.style.display = 'block';
+            }
+
+            // Event listeners
+            startBtn.addEventListener('click', () => {
+                plantName = plantNameInput.value.trim() || 'Planta';
+                plantTitle.textContent = plantName;
+                document.getElementById('name-input').style.display = 'none';
+                showGardenerChat(`Ótimo escolher um nome para sua planta! ${plantName} será bem cuidada com você.`);
+                setTimeout(() => showQuestion(0), 2000);
+            });
+
+            askBtn.addEventListener('click', () => {
+                const question = userQuestion.value.trim().toLowerCase();
+                if (!question) return;
+                
+                let responseKey = Object.keys(gardeningKnowledge).find(key => 
+                    question.includes(key)
+                ) || 'default';
+                
+                const response = gardeningKnowledge[responseKey];
+                showGardenerChat(response.response, response.audio);
+                userQuestion.value = '';
+            });
+
+            userQuestion.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    askBtn.click();
+                }
+            });
+
+            restartBtn.addEventListener('click', restartGame);
+
+            // Toca áudio inicial ao carregar a página
+            playAudio('bem_vindo');
+        });
+    </script>
+</body>
+</html>
